@@ -1,0 +1,287 @@
+Here is the full implementation of a **Mastermind game** where the player guesses the secret code, provides feedback, and the game is visualized in a GUI using **SFML**. It includes a menu, the ability for the player to guess codes, and feedback on how many positions are correct.
+
+---
+
+### **Filstruktur**
+
+```
+|-- Mastermind/
+    |-- main.cpp
+    |-- Game.h
+    |-- Game.cpp
+    |-- Menu.h
+    |-- Menu.cpp
+    |-- SFML (for linking the SFML library)
+    |-- arial.ttf (Font for text)
+```
+
+---
+
+### **Game.h**: Header for Game Logic
+
+```cpp
+#ifndef GAME_H
+#define GAME_H
+
+#include <SFML/Graphics.hpp>
+#include <vector>
+#include <string>
+
+class Game {
+public:
+    Game(int codeLength, int numColors);
+    void generateCode();
+    void draw(sf::RenderWindow& window);
+    bool handleGuess(const std::vector<int>& guess, int& correctPosition, int& correctColor);
+    void reset();
+
+private:
+    int codeLength;
+    int numColors;
+    std::vector<int> secretCode;
+    std::vector<std::vector<int>> playerGuesses;
+    std::vector<std::pair<int, int>> feedback;
+
+    sf::Color getColor(int colorIndex);
+    void drawPolygon(sf::RenderWindow& window, sf::Vector2f position, sf::Color color);
+};
+
+#endif // GAME_H
+```
+
+---
+
+### **Game.cpp**: Game Logic Implementation
+
+```cpp
+#include "Game.h"
+#include <cstdlib>
+#include <ctime>
+#include <algorithm>
+
+Game::Game(int codeLength, int numColors)
+    : codeLength(codeLength), numColors(numColors) {
+    srand(time(0));
+    generateCode();
+}
+
+void Game::generateCode() {
+    secretCode.clear();
+    for (int i = 0; i < codeLength; ++i) {
+        secretCode.push_back(rand() % numColors);
+    }
+    playerGuesses.clear();
+    feedback.clear();
+}
+
+bool Game::handleGuess(const std::vector<int>& guess, int& correctPosition, int& correctColor) {
+    correctPosition = 0;
+    correctColor = 0;
+    std::vector<int> codeCount(numColors, 0), guessCount(numColors, 0);
+
+    for (int i = 0; i < codeLength; ++i) {
+        if (guess[i] == secretCode[i]) {
+            ++correctPosition;
+        } else {
+            ++codeCount[secretCode[i]];
+            ++guessCount[guess[i]];
+        }
+    }
+
+    for (int i = 0; i < numColors; ++i) {
+        correctColor += std::min(codeCount[i], guessCount[i]);
+    }
+
+    playerGuesses.push_back(guess);
+    feedback.push_back({correctPosition, correctColor});
+    return correctPosition == codeLength;
+}
+
+void Game::draw(sf::RenderWindow& window) {
+    sf::Vector2f startPosition(50, 100);
+
+    // Draw previous guesses and feedback
+    for (size_t i = 0; i < playerGuesses.size(); ++i) {
+        sf::Vector2f guessPosition = startPosition + sf::Vector2f(0, i * 80);
+        for (size_t j = 0; j < playerGuesses[i].size(); ++j) {
+            drawPolygon(window, guessPosition + sf::Vector2f(j * 60, 0), getColor(playerGuesses[i][j]));
+        }
+
+        // Draw feedback (correct positions as red, correct colors as white)
+        for (int j = 0; j < feedback[i].first; ++j) {
+            drawPolygon(window, guessPosition + sf::Vector2f(codeLength * 60 + j * 30, 0), sf::Color::Red);
+        }
+        for (int j = 0; j < feedback[i].second; ++j) {
+            drawPolygon(window, guessPosition + sf::Vector2f(codeLength * 60 + feedback[i].first * 30 + j * 30, 0), sf::Color::White);
+        }
+    }
+}
+
+sf::Color Game::getColor(int colorIndex) {
+    switch (colorIndex) {
+        case 0: return sf::Color::Red;
+        case 1: return sf::Color::Green;
+        case 2: return sf::Color::Blue;
+        case 3: return sf::Color::Yellow;
+        case 4: return sf::Color::Cyan;
+        case 5: return sf::Color::Magenta;
+        default: return sf::Color::White;
+    }
+}
+
+void Game::drawPolygon(sf::RenderWindow& window, sf::Vector2f position, sf::Color color) {
+    sf::CircleShape polygon(25, 6); // Hexagon
+    polygon.setPosition(position);
+    polygon.setFillColor(color);
+    polygon.setOutlineThickness(2);
+    polygon.setOutlineColor(sf::Color::Black);
+
+    window.draw(polygon);
+}
+
+void Game::reset() {
+    generateCode();
+}
+```
+
+---
+
+### **Menu.h**: Header for Menu System
+
+```cpp
+#ifndef MENU_H
+#define MENU_H
+
+#include <SFML/Graphics.hpp>
+
+class Menu {
+public:
+    Menu();
+    void draw(sf::RenderWindow& window);
+    int handleInput(const sf::Event& event);
+
+private:
+    sf::Font font;
+    sf::Text playText;
+    sf::Text exitText;
+};
+
+#endif // MENU_H
+```
+
+---
+
+### **Menu.cpp**: Menu System Implementation
+
+```cpp
+#include "Menu.h"
+
+Menu::Menu() {
+    font.loadFromFile("arial.ttf");
+
+    playText.setFont(font);
+    playText.setString("1. Play Mastermind");
+    playText.setCharacterSize(30);
+    playText.setFillColor(sf::Color::White);
+    playText.setPosition(100, 100);
+
+    exitText.setFont(font);
+    exitText.setString("2. Exit");
+    exitText.setCharacterSize(30);
+    exitText.setFillColor(sf::Color::White);
+    exitText.setPosition(100, 150);
+}
+
+void Menu::draw(sf::RenderWindow& window) {
+    window.clear(sf::Color::Black);
+    window.draw(playText);
+    window.draw(exitText);
+    window.display();
+}
+
+int Menu::handleInput(const sf::Event& event) {
+    if (event.type == sf::Event::KeyPressed) {
+        if (event.key.code == sf::Keyboard::Num1) return 1; // Play
+        if (event.key.code == sf::Keyboard::Num2) return 2; // Exit
+    }
+    return 0; // No action
+}
+```
+
+---
+
+### **main.cpp**: Entry Point
+
+```cpp
+#include <SFML/Graphics.hpp>
+#include "Game.h"
+#include "Menu.h"
+#include <iostream>
+
+int main() {
+    sf::RenderWindow window(sf::VideoMode(800, 600), "Mastermind");
+
+    Menu menu;
+    Game game(4, 6);
+
+    int menuChoice = 0;
+    bool isPlaying = false;
+
+    std::vector<int> currentGuess(4, 0);
+    size_t guessIndex = 0;
+
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                window.close();
+            }
+
+            if (!isPlaying) {
+                menuChoice = menu.handleInput(event);
+                if (menuChoice == 1) {
+                    isPlaying = true;
+                    game.reset();
+                } else if (menuChoice == 2) {
+                    window.close();
+                }
+            } else {
+                if (event.type == sf::Event::KeyPressed) {
+                    if (event.key.code == sf::Keyboard::Enter) {
+                        int correctPosition, correctColor;
+                        if (game.handleGuess(currentGuess, correctPosition, correctColor)) {
+                            std::cout << "Congratulations! You cracked the code!\n";
+                            isPlaying = false;
+                        } else {
+                            std::cout << "Feedback - Correct positions: " << correctPosition
+                                      << ", Correct colors: " << correctColor << std::endl;
+                        }
+                    } else if (event.key.code >= sf::Keyboard::Num1 && event.key.code <= sf::Keyboard::Num6) {
+                        currentGuess[guessIndex] = event.key.code - sf::Keyboard::Num1;
+                        guessIndex = (guessIndex + 1) % currentGuess.size();
+                    }
+                }
+            }
+        }
+
+        if (!isPlaying) {
+            menu.draw(window);
+        } else {
+            window.clear(sf::Color::Black);
+            game.draw(window);
+            window.display();
+        }
+    }
+
+    return 0;
+}
+```
+
+---
+
+### Features
+- **Menu System**: Start the game or exit.
+- **Interactive Game**: Players input guesses using the keyboard.
+- **Visual Feedback**: Polygons represent the guesses and feedback.
+
+Try running this code, and let me know if you need further enhancements! 😊
