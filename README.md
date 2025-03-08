@@ -142,7 +142,7 @@ This project is released under the **MIT License**. Feel free to modify and dist
 
 ## Credits
 
-- Developed by: [Your Name]
+- Developed by: Jon-Arve Constantine Grønsberg-Ovesen
 - Algorithm: **Donald Knuth's Five-Guess Algorithm**
 - Library: **SFML**
 
