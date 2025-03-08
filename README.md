@@ -22,214 +22,6 @@ Here’s how to modify the existing code to add this feature:
 ```
 
 ---
-
-### **Solver.h**: Header for the Knuth Solver
-
-```cpp
-#ifndef SOLVER_H
-#define SOLVER_H
-
-#include <vector>
-#include <utility>
-
-class Solver {
-public:
-    Solver(int codeLength, int numColors);
-    std::vector<int> makeGuess();
-    void receiveFeedback(int correctPosition, int correctColor);
-    void reset();
-
-private:
-    int codeLength;
-    int numColors;
-    std::vector<std::vector<int>> possibleCodes;
-    std::vector<int> currentGuess;
-
-    void generateAllCodes();
-    int calculateFeedback(const std::vector<int>& guess, const std::vector<int>& code);
-    void prunePossibleCodes(int correctPosition, int correctColor);
-};
-
-#endif // SOLVER_H
-```
-
----
-
-### **Solver.cpp**: Implementation of the Knuth Solver
-
-```cpp
-#include "Solver.h"
-#include <cmath>
-#include <cstdlib>
-#include <algorithm>
-
-Solver::Solver(int codeLength, int numColors)
-    : codeLength(codeLength), numColors(numColors) {
-    reset();
-}
-
-void Solver::generateAllCodes() {
-    possibleCodes.clear();
-    std::vector<int> code(codeLength, 0);
-    for (int i = 0; i < pow(numColors, codeLength); ++i) {
-        for (int j = 0; j < codeLength; ++j) {
-            code[j] = (i / (int)pow(numColors, j)) % numColors;
-        }
-        possibleCodes.push_back(code);
-    }
-}
-
-void Solver::reset() {
-    generateAllCodes();
-    currentGuess = {0, 0, 1, 1}; // Knuth suggests starting with this guess
-}
-
-std::vector<int> Solver::makeGuess() {
-    if (!currentGuess.empty()) {
-        return currentGuess;
-    }
-
-    // Default to the first possible code as the guess
-    currentGuess = possibleCodes[0];
-    return currentGuess;
-}
-
-void Solver::receiveFeedback(int correctPosition, int correctColor) {
-    prunePossibleCodes(correctPosition, correctColor);
-    if (!possibleCodes.empty()) {
-        currentGuess = possibleCodes[0];
-    }
-}
-
-int Solver::calculateFeedback(const std::vector<int>& guess, const std::vector<int>& code) {
-    int correctPosition = 0, correctColor = 0;
-    std::vector<int> codeCount(numColors, 0), guessCount(numColors, 0);
-
-    for (int i = 0; i < codeLength; ++i) {
-        if (guess[i] == code[i]) {
-            ++correctPosition;
-        } else {
-            ++codeCount[code[i]];
-            ++guessCount[guess[i]];
-        }
-    }
-
-    for (int i = 0; i < numColors; ++i) {
-        correctColor += std::min(codeCount[i], guessCount[i]);
-    }
-
-    return (correctPosition << 4) | correctColor; // Encode feedback as a single value
-}
-
-void Solver::prunePossibleCodes(int correctPosition, int correctColor) {
-    std::vector<std::vector<int>> newPossibleCodes;
-
-    for (const auto& code : possibleCodes) {
-        if (calculateFeedback(currentGuess, code) == (correctPosition << 4 | correctColor)) {
-            newPossibleCodes.push_back(code);
-        }
-    }
-
-    possibleCodes = newPossibleCodes;
-}
-```
-
----
-
-### Updates to **main.cpp** for Solver Integration
-
-```cpp
-#include <SFML/Graphics.hpp>
-#include "Game.h"
-#include "Menu.h"
-#include "Solver.h"
-#include <iostream>
-
-int main() {
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Mastermind with Solver");
-
-    Menu menu;
-    Game game(4, 6);
-    Solver solver(4, 6);
-
-    int menuChoice = 0;
-    bool isPlaying = false;
-    bool solverMode = false;
-
-    std::vector<int> currentGuess(4, 0);
-    size_t guessIndex = 0;
-
-    while (window.isOpen()) {
-        sf::Event event;
-        while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed) {
-                window.close();
-            }
-
-            if (!isPlaying) {
-                menuChoice = menu.handleInput(event);
-                if (menuChoice == 1) {
-                    isPlaying = true;
-                    solverMode = false;
-                    game.reset();
-                } else if (menuChoice == 2) {
-                    isPlaying = true;
-                    solverMode = true;
-                    solver.reset();
-                } else if (menuChoice == 3) {
-                    window.close();
-                }
-            } else {
-                if (solverMode) {
-                    // Solver plays
-                    static bool solved = false;
-                    if (!solved) {
-                        std::vector<int> guess = solver.makeGuess();
-                        int correctPosition, correctColor;
-
-                        if (game.handleGuess(guess, correctPosition, correctColor)) {
-                            std::cout << "Solver cracked the code!" << std::endl;
-                            solved = true;
-                        } else {
-                            solver.receiveFeedback(correctPosition, correctColor);
-                        }
-                    }
-                } else {
-                    // Player plays
-                    if (event.type == sf::Event::KeyPressed) {
-                        if (event.key.code == sf::Keyboard::Enter) {
-                            int correctPosition, correctColor;
-                            if (game.handleGuess(currentGuess, correctPosition, correctColor)) {
-                                std::cout << "Congratulations! You cracked the code!\n";
-                                isPlaying = false;
-                            } else {
-                                std::cout << "Feedback - Correct positions: " << correctPosition
-                                          << ", Correct colors: " << correctColor << std::endl;
-                            }
-                        } else if (event.key.code >= sf::Keyboard::Num1 && event.key.code <= sf::Keyboard::Num6) {
-                            currentGuess[guessIndex] = event.key.code - sf::Keyboard::Num1;
-                            guessIndex = (guessIndex + 1) % currentGuess.size();
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!isPlaying) {
-            menu.draw(window);
-        } else {
-            window.clear(sf::Color::Black);
-            game.draw(window);
-            window.display();
-        }
-    }
-
-    return 0;
-}
-```
-
----
-
 ### Key Features Added:
 1. **Solver Mode**:
    - Uses Donald Knuth's Five-Guess Algorithm to efficiently solve the player's secret code.
@@ -243,4 +35,118 @@ int main() {
    - Displays progress visually using polygons.
 
 This implementation provides both a human-playable game and an automated code-solver using Knuth's algorithm. Let me know if you'd like additional features or enhancements! 😊
+
+Here's a detailed README file for your Mastermind application:
+
+---
+
+# MasteroftheMind
+
+MasteroftheMind is a modern implementation of the classic code-breaking game **Mastermind**. This application not only allows players to challenge themselves but also features a sophisticated **solver mode** powered by Donald Knuth's Five-Guess Algorithm. The solver acts as the codebreaker and efficiently cracks the player's secret code. Built with **SFML**, this game brings together interactivity and powerful logic in one engaging experience.
+
+---
+
+## Features
+
+- **Classic Player Mode**: Take on the role of the codebreaker, guessing the randomly generated secret code.
+- **Solver Mode**: Watch as the application, using Knuth's Five-Guess Algorithm, cracks your code with impressive efficiency.
+- **Interactive Gameplay**: User-friendly interface with keyboard controls and visual feedback.
+- **Customizable Game Rules**:
+  - Adjustable code length.
+  - Configurable number of colors.
+- **Simple and Intuitive Menu**: Navigate between options such as starting a new game, enabling solver mode, or exiting the app.
+
+---
+
+## Installation
+
+### Prerequisites
+- A C++ compiler with C++11 or higher support.
+- **SFML 2.5** or later installed on your system.
+- A terminal/command line environment.
+
+### Steps
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/YourUsername/MasteroftheMind.git
+   cd MasteroftheMind
+   ```
+2. Install **SFML** following the instructions for your system from [SFML's website](https://www.sfml-dev.org/).
+3. Build the application:
+   ```bash
+   g++ -std=c++11 -o Mastermind main.cpp Game.cpp Menu.cpp Solver.cpp -lsfml-graphics -lsfml-window -lsfml-system
+   ```
+4. Run the application:
+   ```bash
+   ./Mastermind
+   ```
+
+---
+
+## How to Play
+
+1. Launch the application.
+2. Choose from the **menu options**:
+   - `1. Play Game`: Start a new game where you will act as the codebreaker.
+   - `2. Solver Mode`: Set a secret code and let the AI solve it for you.
+   - `3. Quit`: Exit the application.
+3. **Player Mode**:
+   - Use keys (`1-6`) to select colors and press `Enter` to submit your guess.
+   - Receive feedback on your guess: the number of correct colors in the right position and correct colors in the wrong position.
+   - Crack the secret code to win!
+4. **Solver Mode**:
+   - Enter your secret code.
+   - Watch the solver deduce the correct code step by step with visual feedback.
+
+---
+
+## File Structure
+
+```
+|-- Mastermind/
+    |-- main.cpp         # Entry point for the application
+    |-- Game.h           # Header file for the game logic
+    |-- Game.cpp         # Implementation of the game logic
+    |-- Menu.h           # Header file for the menu
+    |-- Menu.cpp         # Implementation of the menu
+    |-- Solver.h         # Header file for Knuth's Five-Guess Algorithm
+    |-- Solver.cpp       # Implementation of Knuth's Five-Guess Algorithm
+    |-- SFML/            # Dependencies for the SFML library
+    |-- arial.ttf        # Font file for the menu text
+```
+
+---
+
+## Controls
+
+- **Navigation**: Use keyboard number keys to select menu options.
+- **Player Mode**:
+  - `1-6`: Select colors for your guess.
+  - `Enter`: Submit your guess.
+
+---
+
+## Future Enhancements
+
+- Add a graphical representation for guesses and feedback using SFML.
+- Allow users to configure game settings (e.g., code length and number of colors) through the menu.
+- Implement a leaderboard for tracking player performance.
+
+---
+
+## License
+
+This project is released under the **MIT License**. Feel free to modify and distribute it.
+
+---
+
+## Credits
+
+- Developed by: [Your Name]
+- Algorithm: **Donald Knuth's Five-Guess Algorithm**
+- Library: **SFML**
+
+---
+
+Feel free to update the details, like your name and GitHub URL, where applicable. Let me know if you'd like any changes or additional sections for the README! 🚀
 
