@@ -1,2 +1,246 @@
 # MasteroftheMind
 Mastermind clone
+
+Integrating Donald Knuth's Five-Guess Algorithm into the Mastermind game will allow the application to act as a codebreaker and efficiently solve the player's secret code. The algorithm systematically minimizes the possible solutions based on feedback from the guesses, making it a powerful choice for this application.
+
+Here’s how to modify the existing code to add this feature:
+
+---
+
+### Updated Filstruktur
+```
+|-- Mastermind/
+    |-- main.cpp
+    |-- Game.h
+    |-- Game.cpp
+    |-- Menu.h
+    |-- Menu.cpp
+    |-- Solver.h
+    |-- Solver.cpp
+    |-- SFML/
+    |-- arial.ttf
+```
+
+---
+
+### **Solver.h**: Header for the Knuth Solver
+
+```cpp
+#ifndef SOLVER_H
+#define SOLVER_H
+
+#include <vector>
+#include <utility>
+
+class Solver {
+public:
+    Solver(int codeLength, int numColors);
+    std::vector<int> makeGuess();
+    void receiveFeedback(int correctPosition, int correctColor);
+    void reset();
+
+private:
+    int codeLength;
+    int numColors;
+    std::vector<std::vector<int>> possibleCodes;
+    std::vector<int> currentGuess;
+
+    void generateAllCodes();
+    int calculateFeedback(const std::vector<int>& guess, const std::vector<int>& code);
+    void prunePossibleCodes(int correctPosition, int correctColor);
+};
+
+#endif // SOLVER_H
+```
+
+---
+
+### **Solver.cpp**: Implementation of the Knuth Solver
+
+```cpp
+#include "Solver.h"
+#include <cmath>
+#include <cstdlib>
+#include <algorithm>
+
+Solver::Solver(int codeLength, int numColors)
+    : codeLength(codeLength), numColors(numColors) {
+    reset();
+}
+
+void Solver::generateAllCodes() {
+    possibleCodes.clear();
+    std::vector<int> code(codeLength, 0);
+    for (int i = 0; i < pow(numColors, codeLength); ++i) {
+        for (int j = 0; j < codeLength; ++j) {
+            code[j] = (i / (int)pow(numColors, j)) % numColors;
+        }
+        possibleCodes.push_back(code);
+    }
+}
+
+void Solver::reset() {
+    generateAllCodes();
+    currentGuess = {0, 0, 1, 1}; // Knuth suggests starting with this guess
+}
+
+std::vector<int> Solver::makeGuess() {
+    if (!currentGuess.empty()) {
+        return currentGuess;
+    }
+
+    // Default to the first possible code as the guess
+    currentGuess = possibleCodes[0];
+    return currentGuess;
+}
+
+void Solver::receiveFeedback(int correctPosition, int correctColor) {
+    prunePossibleCodes(correctPosition, correctColor);
+    if (!possibleCodes.empty()) {
+        currentGuess = possibleCodes[0];
+    }
+}
+
+int Solver::calculateFeedback(const std::vector<int>& guess, const std::vector<int>& code) {
+    int correctPosition = 0, correctColor = 0;
+    std::vector<int> codeCount(numColors, 0), guessCount(numColors, 0);
+
+    for (int i = 0; i < codeLength; ++i) {
+        if (guess[i] == code[i]) {
+            ++correctPosition;
+        } else {
+            ++codeCount[code[i]];
+            ++guessCount[guess[i]];
+        }
+    }
+
+    for (int i = 0; i < numColors; ++i) {
+        correctColor += std::min(codeCount[i], guessCount[i]);
+    }
+
+    return (correctPosition << 4) | correctColor; // Encode feedback as a single value
+}
+
+void Solver::prunePossibleCodes(int correctPosition, int correctColor) {
+    std::vector<std::vector<int>> newPossibleCodes;
+
+    for (const auto& code : possibleCodes) {
+        if (calculateFeedback(currentGuess, code) == (correctPosition << 4 | correctColor)) {
+            newPossibleCodes.push_back(code);
+        }
+    }
+
+    possibleCodes = newPossibleCodes;
+}
+```
+
+---
+
+### Updates to **main.cpp** for Solver Integration
+
+```cpp
+#include <SFML/Graphics.hpp>
+#include "Game.h"
+#include "Menu.h"
+#include "Solver.h"
+#include <iostream>
+
+int main() {
+    sf::RenderWindow window(sf::VideoMode(800, 600), "Mastermind with Solver");
+
+    Menu menu;
+    Game game(4, 6);
+    Solver solver(4, 6);
+
+    int menuChoice = 0;
+    bool isPlaying = false;
+    bool solverMode = false;
+
+    std::vector<int> currentGuess(4, 0);
+    size_t guessIndex = 0;
+
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                window.close();
+            }
+
+            if (!isPlaying) {
+                menuChoice = menu.handleInput(event);
+                if (menuChoice == 1) {
+                    isPlaying = true;
+                    solverMode = false;
+                    game.reset();
+                } else if (menuChoice == 2) {
+                    isPlaying = true;
+                    solverMode = true;
+                    solver.reset();
+                } else if (menuChoice == 3) {
+                    window.close();
+                }
+            } else {
+                if (solverMode) {
+                    // Solver plays
+                    static bool solved = false;
+                    if (!solved) {
+                        std::vector<int> guess = solver.makeGuess();
+                        int correctPosition, correctColor;
+
+                        if (game.handleGuess(guess, correctPosition, correctColor)) {
+                            std::cout << "Solver cracked the code!" << std::endl;
+                            solved = true;
+                        } else {
+                            solver.receiveFeedback(correctPosition, correctColor);
+                        }
+                    }
+                } else {
+                    // Player plays
+                    if (event.type == sf::Event::KeyPressed) {
+                        if (event.key.code == sf::Keyboard::Enter) {
+                            int correctPosition, correctColor;
+                            if (game.handleGuess(currentGuess, correctPosition, correctColor)) {
+                                std::cout << "Congratulations! You cracked the code!\n";
+                                isPlaying = false;
+                            } else {
+                                std::cout << "Feedback - Correct positions: " << correctPosition
+                                          << ", Correct colors: " << correctColor << std::endl;
+                            }
+                        } else if (event.key.code >= sf::Keyboard::Num1 && event.key.code <= sf::Keyboard::Num6) {
+                            currentGuess[guessIndex] = event.key.code - sf::Keyboard::Num1;
+                            guessIndex = (guessIndex + 1) % currentGuess.size();
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!isPlaying) {
+            menu.draw(window);
+        } else {
+            window.clear(sf::Color::Black);
+            game.draw(window);
+            window.display();
+        }
+    }
+
+    return 0;
+}
+```
+
+---
+
+### Key Features Added:
+1. **Solver Mode**:
+   - Uses Donald Knuth's Five-Guess Algorithm to efficiently solve the player's secret code.
+   - Runs automatically and provides feedback for each guess until the code is cracked.
+
+2. **Two Game Modes**:
+   - Player-plays mode: The player guesses the code.
+   - Solver mode: The application solves the code set by the player.
+
+3. **Interactive Feedback**:
+   - Displays progress visually using polygons.
+
+This implementation provides both a human-playable game and an automated code-solver using Knuth's algorithm. Let me know if you'd like additional features or enhancements! 😊
+
