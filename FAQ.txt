@@ -1,0 +1,50 @@
+### **FAQs**
+
+#### 1. **What are the system requirements for running this application?**
+   - The application requires a system with a C++ compiler (supporting C++11 or higher) and SFML 2.5 or later installed.
+
+#### 2. **How do I install SFML on my system?**
+   - Visit the [SFML installation guide](https://www.sfml-dev.org/tutorials/) and follow the instructions for your operating system. Ensure SFML is properly linked during compilation.
+
+#### 3. **How do I compile the application?**
+   - Run the following command:
+     ```bash
+     g++ -std=c++11 -o Mastermind main.cpp Game.cpp Menu.cpp Solver.cpp -lsfml-graphics -lsfml-window -lsfml-system
+     ```
+
+#### 4. **What is Solver Mode, and how does it work?**
+   - Solver Mode uses Donald Knuth's Five-Guess Algorithm to efficiently solve a secret code set by the player. The algorithm systematically narrows down the possibilities using feedback.
+
+#### 5. **How do I set a custom code length or number of colors?**
+   - These parameters can be modified directly in the `Game` and `Solver` initialization in the source code (`Game game(codeLength, numColors)`).
+
+#### 6. **What keyboard controls are available?**
+   - Use keys `1-6` to select colors for your guess and `Enter` to submit it. In the menu, use `1`, `2`, or `3` to select Play Mode, Solver Mode, or Quit.
+
+#### 7. **I encountered an issue with the application. How can I report bugs?**
+   - Please open an issue on the [GitHub repository](https://github.com/YourUsername/MasteroftheMind/issues) with a detailed description of the problem.
+
+#### 8. **Can I contribute to this project?**
+   - Absolutely! Contributions are welcome. Fork the repository, create a new branch, and submit a pull request with your changes.
+
+#### 9. **Why is the game not displaying properly?**
+   - Ensure you have the `arial.ttf` font file in the application's root directory, as it is required for rendering text.
+
+#### 10. **What happens if I don't guess the code within the allowed attempts?**
+   - The game will reveal the secret code, and you'll have the option to restart or quit.
+
+#### 11. **How accurate is the solver in cracking the code?**
+   - The solver employs a mathematically proven algorithm that guarantees finding the code within five guesses for typical game settings.
+
+#### 12. **What should I do if SFML is not installed correctly?**
+   - Double-check that SFML is linked properly in your compiler settings. Refer to the [SFML tutorials](https://www.sfml-dev.org/tutorials/) for troubleshooting.
+
+#### 13. **Can I customize the application further?**
+   - Yes! The code is modular, so you can add features such as customizable settings, graphical enhancements, or new game modes.
+
+#### 14. **Does the application support languages other than English?**
+   - Currently, the text is in English, but you can localize it by updating the string literals in the code.
+
+---
+
+Feel free to tailor these questions based on your target audience and project needs! If you'd like help drafting answers for other specific questions, let me know! 😊
