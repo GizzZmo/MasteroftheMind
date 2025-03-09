@@ -148,5 +148,5 @@ This project is released under the **MIT License**. Feel free to modify and dist
 
 ---
 
-Feel free to update the details, like your name and GitHub URL, where applicable. Let me know if you'd like any changes or additional sections for the README! 🚀
+https://github.com/GizzZmo/MasteroftheMind/
 
