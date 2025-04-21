@@ -439,7 +439,7 @@ void solverMode(sf::RenderWindow& window) {
     std::cout << "Launching Solver Mode...\n";
 }
 ```
-Certainly, Jon! Here are more SFML-based GUI functions to enrich your "MasteroftheMind" project with additional features and interactivity:
+Here are more SFML-based GUI functions to enrich your "MasteroftheMind" project with additional features and interactivity:
 
 ---
 
@@ -522,8 +522,276 @@ void drawSolverProgress(sf::RenderWindow& window, const std::vector<std::vector<
         for (size_t col = 0; col < guesses[row].size(); ++col) {
             slot.setFillColor(sf::Color(guesses[row][col], guesses[row][col], guesses[row]
 
+```
+Here’s a complete "How-To Guide" for the "MasteroftheMind" project:
 
+---
 
+## **MasteroftheMind: Complete How-To Guide**
+
+### **Index**
+1. **Introduction**
+2. **File List and Project Structure**
+3. **Setup Instructions**
+4. **Gameplay Modes**
+5. **All GUI Code Snippets**
+6. **Future Enhancements**
+7. **Last Words**
+
+---
+
+### **1. Introduction**
+MasteroftheMind is a modern implementation of the classic code-breaking game, Mastermind, built with C++ and SFML. It features both a player mode and an automated solver mode powered by Donald Knuth's Five-Guess Algorithm. This guide provides step-by-step instructions on how to set up, play, and expand upon the project.
+
+---
+
+### **2. File List and Project Structure**
+The project structure is organized for clarity and scalability. Here’s the file list:
+
+| File Name     | Purpose                                        |
+|---------------|------------------------------------------------|
+| `main.cpp`    | Entry point for the application.              |
+| `Game.h`      | Header file for the game logic.               |
+| `Game.cpp`    | Implementation of the game logic.             |
+| `Menu.h`      | Header file for the menu.                     |
+| `Menu.cpp`    | Implementation of the menu.                   |
+| `Solver.h`    | Header file for Knuth's algorithm.            |
+| `Solver.cpp`  | Implementation of Knuth's algorithm.          |
+| `SFML/`       | Folder containing SFML dependencies.          |
+| `arial.ttf`   | Font file for menu text.                      |
+
+---
+
+### **3. Setup Instructions**
+#### **Prerequisites**
+- C++ compiler (supporting C++11 or higher).
+- SFML 2.5 or later installed on your system.
+- Terminal or command line environment.
+
+#### **Steps**
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/YourUsername/MasteroftheMind.git
+   cd MasteroftheMind
+   ```
+2. **Install SFML**:
+   Follow installation instructions specific to your operating system [here](https://www.sfml-dev.org/).
+3. **Build the Application**:
+   Compile the files using:
+   ```bash
+   g++ -std=c++11 -o Mastermind main.cpp Game.cpp Menu.cpp Solver.cpp -lsfml-graphics -lsfml-window -lsfml-system
+   ```
+4. **Run the Application**:
+   ```bash
+   ./Mastermind
+   ```
+
+---
+
+### **4. Gameplay Modes**
+#### **Player Mode**:
+1. Select "Play Game" from the menu.
+2. Use keys (1-6) to select colors and press Enter to submit your guess.
+3. Feedback is provided for each guess:
+   - Black peg: Correct color in correct position.
+   - White peg: Correct color in wrong position.
+
+#### **Solver Mode**:
+1. Choose "Solver Mode" from the menu.
+2. Enter the secret code.
+3. Watch Knuth’s algorithm deduce the correct code step by step.
+
+---
+
+### **5. All GUI Code Snippets**
+#### **Main Menu**
+```cpp
+void showMenu(sf::RenderWindow& window) {
+    // Menu GUI Code (provided in earlier responses)
+}
+```
+
+#### **Game Board**
+```cpp
+void drawGameBoard(sf::RenderWindow& window, int rows) {
+    // Game Board GUI Code
+}
+```
+
+#### **Color Palette**
+```cpp
+void drawColorPalette(sf::RenderWindow& window) {
+    // Color Palette GUI Code
+}
+```
+
+#### **Feedback Pegs**
+```cpp
+void drawFeedback(sf::RenderWindow& window, const std::vector<int>& feedback, int row) {
+    // Feedback Pegs GUI Code
+}
+```
+
+#### **Solver Progress**
+```cpp
+void drawSolverProgress(sf::RenderWindow& window, const std::vector<std::vector<int>>& guesses) {
+    // Solver Progress GUI Code
+}
+```
+
+Feel free to customize these snippets for your project!
+
+---
+
+### **6. Future Enhancements**
+Suggestions for expanding the project:
+1. **Graphical Enhancements**:
+   - Add animations for smooth transitions and gameplay.
+2. **Settings Configuration**:
+   - Allow players to adjust game settings like code length and number of colors.
+3. **Leaderboard**:
+   - Implement a leaderboard for tracking player performance.
+
+---
+
+### **7. Last Words**
+Congratulations on setting up and exploring MasteroftheMind! Whether you’re cracking codes as a player or watching the solver demonstrate the power of algorithms, this project is a fantastic blend of logic, interactivity, and creativity. The implementation of Knuth's algorithm showcases how advanced techniques can enrich classic games.
+
+Let me know if you need further assistance, Jon—MasteroftheMind is just getting started! 🚀💻Here’s a complete "How-To Guide" for the "MasteroftheMind" project:
+
+---
+
+## **MasteroftheMind: Complete How-To Guide**
+
+### **Index**
+1. **Introduction**
+2. **File List and Project Structure**
+3. **Setup Instructions**
+4. **Gameplay Modes**
+5. **All GUI Code Snippets**
+6. **Future Enhancements**
+7. **Last Words**
+
+---
+
+### **1. Introduction**
+MasteroftheMind is a modern implementation of the classic code-breaking game, Mastermind, built with C++ and SFML. It features both a player mode and an automated solver mode powered by Donald Knuth's Five-Guess Algorithm. This guide provides step-by-step instructions on how to set up, play, and expand upon the project.
+
+---
+
+### **2. File List and Project Structure**
+The project structure is organized for clarity and scalability. Here’s the file list:
+
+| File Name     | Purpose                                        |
+|---------------|------------------------------------------------|
+| `main.cpp`    | Entry point for the application.              |
+| `Game.h`      | Header file for the game logic.               |
+| `Game.cpp`    | Implementation of the game logic.             |
+| `Menu.h`      | Header file for the menu.                     |
+| `Menu.cpp`    | Implementation of the menu.                   |
+| `Solver.h`    | Header file for Knuth's algorithm.            |
+| `Solver.cpp`  | Implementation of Knuth's algorithm.          |
+| `SFML/`       | Folder containing SFML dependencies.          |
+| `arial.ttf`   | Font file for menu text.                      |
+
+---
+
+### **3. Setup Instructions**
+#### **Prerequisites**
+- C++ compiler (supporting C++11 or higher).
+- SFML 2.5 or later installed on your system.
+- Terminal or command line environment.
+
+#### **Steps**
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/YourUsername/MasteroftheMind.git
+   cd MasteroftheMind
+   ```
+2. **Install SFML**:
+   Follow installation instructions specific to your operating system [here](https://www.sfml-dev.org/).
+3. **Build the Application**:
+   Compile the files using:
+   ```bash
+   g++ -std=c++11 -o Mastermind main.cpp Game.cpp Menu.cpp Solver.cpp -lsfml-graphics -lsfml-window -lsfml-system
+   ```
+4. **Run the Application**:
+   ```bash
+   ./Mastermind
+   ```
+
+---
+
+### **4. Gameplay Modes**
+#### **Player Mode**:
+1. Select "Play Game" from the menu.
+2. Use keys (1-6) to select colors and press Enter to submit your guess.
+3. Feedback is provided for each guess:
+   - Black peg: Correct color in correct position.
+   - White peg: Correct color in wrong position.
+
+#### **Solver Mode**:
+1. Choose "Solver Mode" from the menu.
+2. Enter the secret code.
+3. Watch Knuth’s algorithm deduce the correct code step by step.
+
+---
+
+### **5. All GUI Code Snippets**
+#### **Main Menu**
+```cpp
+void showMenu(sf::RenderWindow& window) {
+    // Menu GUI Code (provided in earlier responses)
+}
+```
+
+#### **Game Board**
+```cpp
+void drawGameBoard(sf::RenderWindow& window, int rows) {
+    // Game Board GUI Code
+}
+```
+
+#### **Color Palette**
+```cpp
+void drawColorPalette(sf::RenderWindow& window) {
+    // Color Palette GUI Code
+}
+```
+
+#### **Feedback Pegs**
+```cpp
+void drawFeedback(sf::RenderWindow& window, const std::vector<int>& feedback, int row) {
+    // Feedback Pegs GUI Code
+}
+```
+
+#### **Solver Progress**
+```cpp
+void drawSolverProgress(sf::RenderWindow& window, const std::vector<std::vector<int>>& guesses) {
+    // Solver Progress GUI Code
+}
+```
+
+Feel free to customize these snippets for your project!
+
+---
+
+### **6. Future Enhancements**
+Suggestions for expanding the project:
+1. **Graphical Enhancements**:
+   - Add animations for smooth transitions and gameplay.
+2. **Settings Configuration**:
+   - Allow players to adjust game settings like code length and number of colors.
+3. **Leaderboard**:
+   - Implement a leaderboard for tracking player performance.
+
+---
+
+### **7. Last Words**
+Congratulations on setting up and exploring MasteroftheMind! Whether you’re cracking codes as a player or watching the solver demonstrate the power of algorithms, this project is a fantastic blend of logic, interactivity, and creativity. The implementation of Knuth's algorithm showcases how advanced techniques can enrich classic games.
+
+Let me know if you need further assistance, Jon—MasteroftheMind is just getting started! 🚀💻
 
 
 https://github.com/GizzZmo/MasteroftheMind/
