@@ -349,6 +349,99 @@ int main() {
     return 0;
 }
 ```
+Thanks for the nudge, Jon! Here’s how you can integrate the GUI layout snippets into your "MasteroftheMind" project effectively:
+
+### Integration Plan
+1. **Set Up Your Project**:
+   - Ensure all necessary SFML files (`sfml-graphics`, `sfml-window`, `sfml-system`) are included.
+   - Place the existing `main.cpp`, `Game.cpp`, `Menu.cpp`, and `Solver.cpp` files into your project folder.
+
+2. **Create GUI Functions**:
+   - Break the snippets I provided into separate functions for the main menu, game board, and color selector.
+   - Use `Menu.cpp` to handle menu navigation and `Game.cpp` for gameplay logic.
+
+3. **Update the `main.cpp` File**:
+   - Integrate the menu function to display the main menu.
+   - Use logic to switch between "Player Mode" and "Solver Mode" based on the user’s selection.
+
+### Example Updated Code Structure
+Here’s an updated layout for the `main.cpp` file:
+
+```cpp
+#include <SFML/Graphics.hpp>
+#include <iostream>
+#include "Menu.h"
+#include "Game.h"
+
+void showMenu(sf::RenderWindow& window);
+void playGame(sf::RenderWindow& window);
+void solverMode(sf::RenderWindow& window);
+
+int main() {
+    sf::RenderWindow window(sf::VideoMode(800, 600), "MasteroftheMind");
+    while (window.isOpen()) {
+        showMenu(window);
+    }
+    return 0;
+}
+
+void showMenu(sf::RenderWindow& window) {
+    sf::Font font;
+    if (!font.loadFromFile("arial.ttf")) {
+        std::cerr << "Error loading font\n";
+        return;
+    }
+
+    sf::Text title("MasteroftheMind", font, 50);
+    title.setPosition(200, 50);
+
+    sf::Text playButton("Play Game (1)", font, 30);
+    playButton.setPosition(300, 150);
+
+    sf::Text solverButton("Solver Mode (2)", font, 30);
+    solverButton.setPosition(300, 200);
+
+    sf::Text quitButton("Quit (3)", font, 30);
+    quitButton.setPosition(300, 250);
+
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                window.close();
+            if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::Num1) {
+                    playGame(window);
+                } else if (event.key.code == sf::Keyboard::Num2) {
+                    solverMode(window);
+                } else if (event.key.code == sf::Keyboard::Num3) {
+                    window.close();
+                }
+            }
+        }
+
+        window.clear();
+        window.draw(title);
+        window.draw(playButton);
+        window.draw(solverButton);
+        window.draw(quitButton);
+        window.display();
+    }
+}
+
+void playGame(sf::RenderWindow& window) {
+    // Call game board and gameplay logic functions here
+    std::cout << "Launching Player Mode...\n";
+}
+
+void solverMode(sf::RenderWindow& window) {
+    // Call solver mode GUI functions here
+    std::cout << "Launching Solver Mode...\n";
+}
+```
+
+This structure ties everything together. Let me know if you need help implementing specific features—like animations or smoother transitions! 🚀
+
 
 
 https://github.com/GizzZmo/MasteroftheMind/
