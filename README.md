@@ -216,5 +216,140 @@ When navigating to the player mode:
 
 ---
 
+Of course, Jon! Here are some SFML code snippets for implementing the GUI layout described earlier:
+
+### Main Menu
+This snippet creates a basic menu with buttons for "Play Game," "Solver Mode," and "Quit."
+
+```cpp
+#include <SFML/Graphics.hpp>
+#include <iostream>
+
+int main() {
+    sf::RenderWindow window(sf::VideoMode(800, 600), "MasteroftheMind - Main Menu");
+    sf::Font font;
+    if (!font.loadFromFile("arial.ttf")) {
+        std::cerr << "Error loading font\n";
+        return -1;
+    }
+
+    sf::Text title("MasteroftheMind", font, 50);
+    title.setPosition(200, 50);
+
+    sf::Text playButton("Play Game", font, 30);
+    playButton.setPosition(300, 150);
+
+    sf::Text solverButton("Solver Mode", font, 30);
+    solverButton.setPosition(300, 200);
+
+    sf::Text quitButton("Quit", font, 30);
+    quitButton.setPosition(300, 250);
+
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                window.close();
+            if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::Num1) {
+                    std::cout << "Play Game Selected\n";
+                } else if (event.key.code == sf::Keyboard::Num2) {
+                    std::cout << "Solver Mode Selected\n";
+                } else if (event.key.code == sf::Keyboard::Num3) {
+                    window.close();
+                }
+            }
+        }
+
+        window.clear();
+        window.draw(title);
+        window.draw(playButton);
+        window.draw(solverButton);
+        window.draw(quitButton);
+        window.display();
+    }
+
+    return 0;
+}
+```
+
+### Game Board Layout
+This snippet creates a basic game board layout with rows for guesses and spaces for feedback.
+
+```cpp
+#include <SFML/Graphics.hpp>
+
+int main() {
+    sf::RenderWindow window(sf::VideoMode(800, 600), "MasteroftheMind - Game Board");
+
+    sf::RectangleShape guessSlot(sf::Vector2f(60, 60));
+    guessSlot.setFillColor(sf::Color::White);
+    guessSlot.setOutlineThickness(2);
+    guessSlot.setOutlineColor(sf::Color::Black);
+
+    sf::CircleShape feedbackPeg(10);
+    feedbackPeg.setFillColor(sf::Color::Black);
+
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
+
+        window.clear(sf::Color::Blue);
+
+        // Draw guess slots
+        for (int i = 0; i < 10; ++i) {
+            guessSlot.setPosition(100, 50 + (i * 70));
+            window.draw(guessSlot);
+            // Draw feedback pegs
+            feedbackPeg.setPosition(200, 70 + (i * 70));
+            window.draw(feedbackPeg);
+        }
+
+        window.display();
+    }
+
+    return 0;
+}
+```
+
+### Color Selector
+This snippet shows a palette of selectable colors at the bottom of the screen.
+
+```cpp
+#include <SFML/Graphics.hpp>
+
+int main() {
+    sf::RenderWindow window(sf::VideoMode(800, 600), "MasteroftheMind - Color Selector");
+
+    sf::CircleShape colorCircle(30);
+    sf::Color colors[] = {sf::Color::Red, sf::Color::Green, sf::Color::Blue, sf::Color::Yellow, sf::Color::Cyan, sf::Color::Magenta};
+
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
+
+        window.clear(sf::Color::Black);
+
+        // Draw color options
+        for (int i = 0; i < 6; ++i) {
+            colorCircle.setFillColor(colors[i]);
+            colorCircle.setPosition(100 + (i * 100), 500);
+            window.draw(colorCircle);
+        }
+
+        window.display();
+    }
+
+    return 0;
+}
+```
+
+
 https://github.com/GizzZmo/MasteroftheMind/
 
