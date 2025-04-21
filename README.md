@@ -439,8 +439,90 @@ void solverMode(sf::RenderWindow& window) {
     std::cout << "Launching Solver Mode...\n";
 }
 ```
+Certainly, Jon! Here are more SFML-based GUI functions to enrich your "MasteroftheMind" project with additional features and interactivity:
 
-This structure ties everything together. Let me know if you need help implementing specific features—like animations or smoother transitions! 🚀
+---
+
+### Function: Display Feedback for Guesses
+This function visually updates the feedback for each guess (e.g., black pegs for correct position and color, white pegs for correct color but wrong position).
+
+```cpp
+void drawFeedback(sf::RenderWindow& window, const std::vector<int>& feedback, int row) {
+    sf::CircleShape feedbackPeg(10); // Small pegs for feedback
+    feedbackPeg.setOutlineThickness(1);
+    feedbackPeg.setOutlineColor(sf::Color::Black);
+
+    for (size_t i = 0; i < feedback.size(); ++i) {
+        if (feedback[i] == 1) {
+            feedbackPeg.setFillColor(sf::Color::Black); // Correct position and color
+        } else if (feedback[i] == 0) {
+            feedbackPeg.setFillColor(sf::Color::White); // Correct color but wrong position
+        } else {
+            feedbackPeg.setFillColor(sf::Color::Transparent); // No feedback
+        }
+        feedbackPeg.setPosition(400 + (i * 20), 70 + (row * 70));
+        window.draw(feedbackPeg);
+    }
+}
+```
+
+---
+
+### Function: Draw Color Palette for Selection
+This function renders a row of selectable colors at the bottom of the screen. Players can click a color to choose it for their guess.
+
+```cpp
+void drawColorPalette(sf::RenderWindow& window) {
+    sf::CircleShape colorCircle(30); // Color options as circles
+    sf::Color colors[] = {sf::Color::Red, sf::Color::Green, sf::Color::Blue, sf::Color::Yellow, sf::Color::Cyan, sf::Color::Magenta};
+
+    for (int i = 0; i < 6; ++i) {
+        colorCircle.setFillColor(colors[i]);
+        colorCircle.setOutlineThickness(2);
+        colorCircle.setOutlineColor(sf::Color::Black);
+        colorCircle.setPosition(100 + (i * 100), 500); // Positioned horizontally
+        window.draw(colorCircle);
+    }
+}
+```
+
+---
+
+### Function: Create Game Board Slots
+This function draws rows of empty slots where players input their guesses.
+
+```cpp
+void drawGameBoard(sf::RenderWindow& window, int rows) {
+    sf::RectangleShape guessSlot(sf::Vector2f(60, 60));
+    guessSlot.setFillColor(sf::Color::White);
+    guessSlot.setOutlineThickness(2);
+    guessSlot.setOutlineColor(sf::Color::Black);
+
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < 4; ++j) { // 4 slots per row
+            guessSlot.setPosition(100 + (j * 70), 50 + (i * 70));
+            window.draw(guessSlot);
+        }
+    }
+}
+```
+
+---
+
+### Function: Display Solver Progress
+In Solver Mode, this function updates the GUI dynamically to show the solver’s guesses as it deduces the code.
+
+```cpp
+void drawSolverProgress(sf::RenderWindow& window, const std::vector<std::vector<int>>& guesses) {
+    sf::RectangleShape slot(sf::Vector2f(60, 60));
+    slot.setOutlineThickness(2);
+    slot.setOutlineColor(sf::Color::Black);
+
+    for (size_t row = 0; row < guesses.size(); ++row) {
+        for (size_t col = 0; col < guesses[row].size(); ++col) {
+            slot.setFillColor(sf::Color(guesses[row][col], guesses[row][col], guesses[row]
+
+
 
 
 
