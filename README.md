@@ -144,9 +144,7 @@ This project is released under the **MIT License**. Feel free to modify and dist
 
 - Developed by: Jon-Arve Constantine Grønsberg-Ovesen
 - Algorithm: **Donald Knuth's Five-Guess Algorithm**
-- 
-
-Absolutely, Jon! Here’s a layout design concept for the GUI of "MasteroftheMind" to make the gameplay visually appealing and intuitive. Let’s focus on structuring the main screens:
+  
 
 ### Layout Design Plan
 
