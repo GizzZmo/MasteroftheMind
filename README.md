@@ -144,6 +144,76 @@ This project is released under the **MIT License**. Feel free to modify and dist
 
 - Developed by: Jon-Arve Constantine Grønsberg-Ovesen
 - Algorithm: **Donald Knuth's Five-Guess Algorithm**
+- 
+
+Absolutely, Jon! Here’s a layout design concept for the GUI of "MasteroftheMind" to make the gameplay visually appealing and intuitive. Let’s focus on structuring the main screens:
+
+### Layout Design Plan
+
+#### 1. **Main Menu**
+- **Header**: Title displayed at the top center (e.g., "MasteroftheMind").
+- **Buttons**:
+  - **Play Game**: Starts the player mode.
+  - **Solver Mode**: Starts the solver mode.
+  - **Quit**: Exits the application.
+- Use clear fonts (e.g., Arial or similar) with hover effects for active buttons.
+- Position the menu items vertically in the center of the window with adequate spacing.
+
+#### 2. **Player Mode Screen**
+- **Game Board**:
+  - Center area showing empty slots for guesses.
+  - Rows display guesses made by the player.
+- **Color Selector**:
+  - A palette of color options at the bottom, allowing players to click their choices.
+- **Feedback Section**:
+  - Small pegs to indicate feedback for each guess (correct color/position).
+  - Positioned beside each row of guesses.
+- **Navigation**:
+  - Buttons for actions like “Submit Guess” and “Restart Game.”
+
+#### 3. **Solver Mode Screen**
+- **Solver Progress**:
+  - Visual display of the solver’s guesses, updated after each step.
+- **Input Section**:
+  - Allow the player to set the secret code visually.
+- **Feedback Display**:
+  - Similar to the player mode, showing solver feedback.
+
+#### 4. **General GUI Features**
+- **Background**:
+  - Use gradients or subtle patterns for a clean look.
+- **Animations**:
+  - Smooth transitions between screens.
+- **Color Scheme**:
+  - Utilize contrasting colors for buttons and text to ensure readability.
+
+### Example GUI Layout Mockup
+Here’s a conceptual visualization in text format:
+
+```
+-------------------------------
+|         MasteroftheMind     |
+-------------------------------
+|        [Play Game]          |
+|       [Solver Mode]         |
+|         [Quit]              |
+-------------------------------
+```
+
+When navigating to the player mode:
+```
+-----------------------------------
+|           GAME BOARD            |
+|  [Guess 1]   | Feedback |       |
+|  [Guess 2]   | Feedback |       |
+|       ...                     |
+-----------------------------------
+|   [Color Options: 1-6]          |
+|   [Submit Guess] [Restart]      |
+-----------------------------------
+```
+
+
 - Library: **SFML**
 
 ---
