@@ -657,7 +657,7 @@ Suggestions for expanding the project:
 ### **7. Last Words**
 Congratulations on setting up and exploring MasteroftheMind! Whether you’re cracking codes as a player or watching the solver demonstrate the power of algorithms, this project is a fantastic blend of logic, interactivity, and creativity. The implementation of Knuth's algorithm showcases how advanced techniques can enrich classic games.
 
-Let me know if you need further assistance, Jon—MasteroftheMind is just getting started! 🚀💻Here’s a complete "How-To Guide" for the "MasteroftheMind" project:
+MasteroftheMind is just getting started! 🚀💻Here’s a complete "How-To Guide" for the "MasteroftheMind" project:
 
 ---
 
