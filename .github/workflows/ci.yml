@@ -8,21 +8,61 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        compiler: [g++, clang++]
+
     steps:
+    # 1. Checkout code
     - uses: actions/checkout@v4
 
+    # 2. Cache APT dependencies to speed up builds
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: /var/cache/apt
+        key: ${{ runner.os }}-apt-cache
+        restore-keys: |
+          ${{ runner.os }}-apt-cache
+
+    # 3. Install build and analysis dependencies
     - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y g++ make
-
-    - name: Build
       run: |
-        make all:
-                  g++ -o MasteroftheMind main.cpp
+        sudo apt-get update
+        sudo apt-get install -y ${{ matrix.compiler }} make cppcheck
 
+    # 4. Static code analysis for code quality
+    - name: Static Analysis
+      run: cppcheck --enable=all --inconclusive --quiet .
+
+    # 5. Build the project
+    - name: Build
+      run: make all
+
+    # 6. Store build artifacts for future reference/debugging
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-artifacts
+        path: MasteroftheMind
+
+    # 7. Run tests (replace with your actual test command)
     - name: Run tests
       run: |
-        # Replace with your test command, e.g., ./test or make test
-        echo "No tests defined"
+        # Replace the following line with your actual test command, e.g., ./test or make test
+        if [ -f ./test ]; then
+          chmod +x ./test
+          ./test
+        else
+          echo "No tests defined"
+        fi
+
+    # 8. Notify on failure
+    - name: Notify on failure
+      if: failure()
+      run: echo "Build failed: $GITHUB_RUN_ID"
+
+    # 9. Documentation for maintainability (comments explaining steps)
+    # - Steps are commented for clarity and future maintainers
