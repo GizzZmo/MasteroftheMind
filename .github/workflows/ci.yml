@@ -12,7 +12,16 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4steps:
+  - uses: actions/checkout@v4
+  - name: Configure
+    run: ./path-to-configure/configure
+      steps:
+  - uses: actions/checkout@v4
+  - name: Fetch Configure Script
+    run: curl -O https://example.com/configure
+  - name: Configure
+    run: ./configure
 
     # Language setup example for Node.js, Python, and Java
     # Uncomment the section matching your main language
