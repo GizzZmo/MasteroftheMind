@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastermind Game with AI Solver</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a2e; /* Deep indigo background */
+            color: #e0e0e0; /* Light gray text for contrast */
+        }
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background-color: #16213e; /* Slightly lighter deep blue for containers */
+            border-radius: 0.75rem; /* rounded-lg */
+            box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.4); /* Deeper shadow */
+            border: 1px solid #3b82f6; /* Subtle blue border */
+        }
+        canvas {
+            border: 2px solid #0f3460; /* Darker blue border for canvas */
+            background-color: #0a0a20; /* Very dark background for canvas */
+            border-radius: 0.5rem; /* rounded-md */
+            display: block;
+            margin: 0 auto;
+            touch-action: none; /* Prevent default touch actions like scrolling */
+        }
+        .color-peg {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #5a67d8; /* Indigo border for pegs */
+            cursor: pointer;
+            transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        .color-peg:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.7); /* Blue glow on hover */
+        }
+        .color-peg.selected {
+            border-color: #3b82f6; /* Blue-500 */
+            box-shadow: 0 0 0 4px #3b82f6; /* Blue-500 glow */
+        }
+        .control-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.3); /* Deeper shadow */
+        }
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px -3px rgba(0, 0, 0, 0.4);
+        }
+        .control-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+        }
+        .btn-primary {
+            background: linear-gradient(to right, #3b82f6, #6b46ef); /* Blue to Purple gradient */
+            color: white;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(to right, #2563eb, #5a3edb); /* Slightly darker gradient on hover */
+        }
+        .btn-secondary {
+            background-color: #4b5563; /* Darker gray */
+            color: #e0e0e0;
+        }
+        .btn-secondary:hover {
+            background-color: #374151; /* Even darker gray on hover */
+        }
+        .message-box {
+            background-color: rgba(59, 130, 246, 0.2); /* Blue-500 with opacity */
+            color: #93c5fd; /* Blue-300 text */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            text-align: center;
+            font-weight: 500;
+            border: 1px solid rgba(59, 130, 246, 0.5);
+        }
+        .message-box.success {
+            background-color: rgba(34, 197, 94, 0.2); /* Green with opacity */
+            color: #86efac; /* Green-300 text */
+            border: 1px solid rgba(34, 197, 94, 0.5);
+        }
+        .message-box.error {
+            background-color: rgba(239, 68, 68, 0.2); /* Red with opacity */
+            color: #fca5a5; /* Red-300 text */
+            border: 1px solid rgba(239, 68, 68, 0.5);
+        }
+        .ai-hint-box, .ai-analysis-box {
+            background-color: rgba(16, 185, 129, 0.15); /* Emerald-500 with opacity */
+            color: #a7f3d0; /* Emerald-200 text */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            font-style: italic;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+        .ai-hint-box.loading, .ai-analysis-box.loading {
+            background-color: rgba(59, 130, 246, 0.15); /* Light blue for loading */
+            color: #93c5fd; /* Blue-300 text for loading */
+            border: 1px solid rgba(59, 130, 246, 0.4);
+        }
+        .info-section {
+            display: none; /* Hidden by default */
+        }
+        .info-section h2, .info-section h3, .info-section h4 {
+            color: #e0e0e0; /* Lighter text for headings in info section */
+        }
+        .info-section ul li {
+            color: #c0c0c0; /* Slightly faded text for list items */
+        }
+        .info-section ul ul li {
+            color: #b0b0b0; /* Even more faded for nested lists */
+        }
+        .info-section p {
+            color: #d0d0d0; /* Slightly faded text for paragraphs */
+        }
+        .info-section .font-bold {
+            color: #ffffff; /* White for bold text in info section */
+        }
+        .info-section .text-blue-600 {
+            color: #93c5fd; /* Blue-300 for emphasis in info section */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center mb-6 text-white">Mastermind Game</h1>
+        <p class="text-center text-gray-400 mb-4">Crack the secret code! Choose 4 colors and get feedback.</p>
+
+        <canvas id="gameCanvas"></canvas>
+
+        <div class="mt-6 p-4 bg-[#0f3460] rounded-lg shadow-inner border border-[#2e578c]">
+            <h2 class="text-xl font-semibold mb-3 text-white">Game Settings:</h2>
+            <div class="flex flex-col md:flex-row justify-center items-center gap-4 mb-4">
+                <label for="difficultySelect" class="font-medium text-gray-300">Difficulty:</label>
+                <select id="difficultySelect" class="p-2 border border-gray-600 rounded-md bg-gray-800 text-gray-200">
+                    <option value="easy">Easy (3 Colors, 3 Pegs, 8 Turns)</option>
+                    <option value="medium" selected>Medium (6 Colors, 4 Pegs, 10 Turns)</option>
+                    <option value="hard">Hard (8 Colors, 5 Pegs, 12 Turns)</option>
+                </select>
+                <button id="applyDifficultyBtn" class="control-button btn-secondary">Apply & New Game</button>
+            </div>
+        </div>
+
+        <div class="mt-6 text-center">
+            <button id="toggleInfoBtn" class="control-button btn-secondary">Game Info & History</button>
+        </div>
+
+        <div id="gameInfoSection" class="info-section mt-6 p-4 bg-[#0f3460] rounded-lg shadow-inner border border-[#2e578c]">
+            <h2 class="text-xl font-semibold mb-3">About Mastermind</h2>
+            <p class="text-gray-300 mb-4">Mastermind is a classic code-breaking game for two players. One player (the "codemaker") creates a secret code, and the other player (the "codebreaker") tries to guess it. This version pits you against an AI codemaker!</p>
+
+            <h3 class="text-lg font-semibold mb-2">How to Play:</h3>
+            <ul class="list-disc list-inside text-gray-300 mb-4">
+                <li>The AI codemaker sets a secret code of colored pegs. The number of pegs and colors depends on the difficulty. Duplicates are allowed.</li>
+                <li>You, the codebreaker, have a limited number of turns to guess the secret code.</li>
+                <li>For each guess, select the required number of colors using the color picker below and click "Make Guess".</li>
+                <li>After each guess, you receive feedback using small black and white pegs:
+                    <ul class="list-['▸'] list-inside ml-4 mt-1">
+                        <li><span class="font-bold text-white">Black Peg:</span> A peg in your guess is the correct color AND in the correct position.</li>
+                        <li><span class="font-bold text-white">White Peg:</span> A peg in your guess is the correct color but in the WRONG position.</li>
+                    </ul>
+                </li>
+                <li>The order of feedback pegs does not reveal which specific guess pegs they correspond to.</li>
+                <li>Use the feedback to refine your next guess. You win if you guess the code within the allowed turns!</li>
+            </ul>
+
+            <h3 class="text-lg font-semibold mb-2">Tips & Tricks:</h3>
+            <ul class="list-disc list-inside text-gray-300 mb-4">
+                <li><span class="font-bold text-white">First Guess:</span> A common strategy is to use a guess with two pairs of different colors (e.g., Red, Red, Blue, Blue) to get initial information about colors and positions.</li>
+                <li><span class="font-bold text-white">Elimination:</span> If a color receives no black or white pegs, you know it's not in the code at all.</li>
+                <li><span class="font-bold text-white">Positioning:</span> Black pegs are powerful! They tell you both color and position are correct. Use them to lock down parts of the code.</li>
+                <li><span class="font-bold text-white">Deduction:</span> Each piece of feedback helps eliminate possibilities. Think about what codes are still possible given the feedback you've received.</li>
+                <li><span class="font-bold text-white">AI Hint:</span> Don't hesitate to use the "Get ✨ AI Hint" button if you're stuck!</li>
+            </ul>
+
+            <h3 class="text-lg font-semibold mb-2">History of Mastermind:</h3>
+            <p class="text-gray-300 mb-2">Mastermind was invented in <strong>1970</strong> by <strong>Mordecai Meirowitz</strong>, an Israeli postmaster and telecommunications expert. It was inspired by an earlier pencil-and-paper game called "Bulls and Cows," whose exact origins are somewhat mysterious, possibly dating back a century or more.</p>
+            <p class="text-gray-300 mb-2">After initial rejections, Meirowitz presented his game at the Nuremberg Toy Fair, where it was picked up by Invicta Plastics, a British company. The game quickly gained immense popularity worldwide, selling millions of copies and even leading to a national championship at the Playboy Club.</p>
+
+            <h3 class="text-lg font-semibold mb-2">Donald Knuth and the Five-Guess Algorithm (1977):</h3>
+            <p class="text-gray-300 mb-2">In <strong>1977</strong>, the renowned American computer scientist <strong>Donald Knuth</strong> published a groundbreaking paper demonstrating that the standard Mastermind game (with 4 pegs and 6 colors) can always be solved in a maximum of **five guesses**. He developed a precise algorithm to achieve this, making him a central figure in the game's analytical history.</p>
+            <p class="text-gray-300 mb-2">Knuth's algorithm starts with an initial guess (commonly '1122' or Red-Red-Orange-Orange) and then systematically reduces the set of all possible codes based on the feedback received. For subsequent guesses, it employs a <strong>minimax strategy</strong>: it chooses the guess that will minimize the maximum number of remaining possibilities, ensuring the most efficient path to the solution even in the worst-case scenario. This algorithm remains a benchmark for optimal Mastermind play.</p>
+            
+            <h3 class="text-lg font-semibold mb-2">Impact on Computer Science & AI:</h3>
+            <p class="text-gray-300">Beyond being a popular board game, Mastermind has had a significant impact on computer science and artificial intelligence. It serves as an excellent benchmark problem for developing and testing algorithms related to logical deduction, information theory, and search strategies. Its simple rules yet deep combinatorial complexity make it ideal for exploring efficient problem-solving approaches in AI research.</p>
+        </div>
+
+        <div class="mt-6 p-4 bg-[#0f3460] rounded-lg shadow-inner border border-[#2e578c]">
+            <h2 class="text-xl font-semibold mb-3 text-white">Choose Your Guess:</h2>
+            <div id="colorPicker" class="flex flex-wrap justify-center gap-3 mb-4">
+                <!-- Color pegs will be dynamically inserted here by JS -->
+            </div>
+            <div class="flex justify-center gap-4">
+                <button id="makeGuessBtn" class="control-button btn-primary">Make Guess</button>
+                <button id="clearGuessBtn" class="control-button btn-secondary">Clear Current Guess</button>
+            </div>
+        </div>
+
+        <div class="mt-6 p-4 bg-[#0f3460] rounded-lg shadow-inner border border-[#2e578c]">
+            <h2 class="text-xl font-semibold mb-3 text-white">AI Solver:</h2>
+            <div class="flex justify-center gap-4">
+                <button id="solveNextBtn" class="control-button btn-primary">AI Solve Next Guess</button>
+                <button id="autoSolveBtn" class="control-button btn-secondary">Auto Solve Game</button>
+            </div>
+            <div id="solverOutput" class="mt-4 p-3 bg-blue-900/50 rounded-lg text-blue-200 text-sm hidden border border-blue-700">
+                <p class="font-medium">AI's Suggestion:</p>
+                <p id="aiSuggestedCode"></p>
+            </div>
+        </div>
+
+        <div class="mt-6 p-4 bg-[#0f3460] rounded-lg shadow-inner border border-[#2e578c]">
+            <h2 class="text-xl font-semibold mb-3 text-white">AI Coach:</h2>
+            <div class="flex justify-center gap-4">
+                <button id="getAIHintBtn" class="control-button btn-primary">Get ✨ AI Hint</button>
+                <button id="analyzeGameBtn" class="control-button btn-primary hidden">Analyze My Game ✨</button> <!-- New button -->
+            </div>
+            <div id="aiHintOutput" class="ai-hint-box hidden mt-4">
+                <p id="aiHintText"></p>
+            </div>
+            <div id="gameAnalysisOutput" class="ai-analysis-box hidden mt-4"> <!-- New analysis output area -->
+                <p id="gameAnalysisText"></p>
+            </div>
+        </div>
+
+        <div id="gameMessage" class="message-box hidden"></div>
+
+        <div class="mt-6 text-center">
+            <button id="newGameBtn" class="control-button btn-secondary">New Game</button>
+        </div>
+    </div>
+
+    <script>
+        // Game Configuration (Default values, will be updated by difficulty)
+        let CODE_LENGTH = 4;
+        let NUM_TURNS = 10;
+        const ALL_PEG_COLORS = [
+            '#ef4444', // Red
+            '#f97316', // Orange
+            '#eab308', // Yellow
+            '#22c55e', // Green
+            '#3b82f6', // Blue
+            '#8b5cf6', // Purple
+            '#10b981', // Emerald
+            '#f43f5e'  // Rose
+        ];
+        const ALL_PEG_COLOR_NAMES = [
+            'Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Emerald', 'Rose'
+        ];
+        let PEG_COLORS = ALL_PEG_COLORS.slice(0, 6); // Default to 6 colors
+        let PEG_COLOR_NAMES = ALL_PEG_COLOR_NAMES.slice(0, 6); // Default to 6 color names
+
+        const PEG_RADIUS = 20;
+        const FEEDBACK_PEG_RADIUS = 8;
+        const ROW_HEIGHT = 60;
+        const PADDING_X = 20;
+        const PADDING_Y = 20;
+
+        // Canvas Elements
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // UI Elements
+        const colorPicker = document.getElementById('colorPicker');
+        const makeGuessBtn = document.getElementById('makeGuessBtn');
+        const clearGuessBtn = document.getElementById('clearGuessBtn');
+        const solveNextBtn = document.getElementById('solveNextBtn');
+        const autoSolveBtn = document.getElementById('autoSolveBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const gameMessage = document.getElementById('gameMessage');
+        const solverOutput = document.getElementById('solverOutput');
+        const aiSuggestedCode = document.getElementById('aiSuggestedCode');
+        const getAIHintBtn = document.getElementById('getAIHintBtn');
+        const aiHintOutput = document.getElementById('aiHintOutput');
+        const aiHintText = document.getElementById('aiHintText');
+        const toggleInfoBtn = document.getElementById('toggleInfoBtn');
+        const gameInfoSection = document.getElementById('gameInfoSection');
+        const difficultySelect = document.getElementById('difficultySelect');
+        const applyDifficultyBtn = document.getElementById('applyDifficultyBtn');
+        const analyzeGameBtn = document.getElementById('analyzeGameBtn');
+        const gameAnalysisOutput = document.getElementById('gameAnalysisOutput');
+        const gameAnalysisText = document.getElementById('gameAnalysisText');
+
+        // Game State Variables
+        let secretCode = [];
+        let currentGuess = Array(CODE_LENGTH).fill(null);
+        let guessHistory = [];
+        let currentTurn = 0;
+        let gameOver = false;
+        let possibleCodes = [];
+
+        // --- Utility Functions ---
+
+        /**
+         * Generates all possible codes for the Mastermind game based on
+         * CODE_LENGTH and the current number of available colors.
+         * @returns {Array<Array<number>>} An array of all possible code combinations.
+         */
+        function generateAllPossibleCodes() {
+            const codes = [];
+            const numColors = PEG_COLORS.length;
+
+            function generate(currentCode) {
+                if (currentCode.length === CODE_LENGTH) {
+                    codes.push([...currentCode]);
+                    return;
+                }
+                for (let i = 0; i < numColors; i++) {
+                    currentCode.push(i);
+                    generate(currentCode);
+                    currentCode.pop();
+                }
+            }
+            generate([]);
+            return codes;
+        }
+
+        /**
+         * Calculates the feedback (black and white pegs) for a given guess against a secret code.
+         * Handles duplicate colors correctly.
+         * @param {Array<number>} guess - The array of color indices for the guess.
+         * @param {Array<number>} secret - The array of color indices for the secret code.
+         * @returns {{black: number, white: number}} An object with black and white peg counts.
+         */
+        function calculateFeedback(guess, secret) {
+            let blackPegs = 0;
+            let whitePegs = 0;
+            const secretCopy = [...secret];
+            const guessCopy = [...guess];
+
+            // First, calculate black pegs
+            for (let i = 0; i < CODE_LENGTH; i++) {
+                if (guessCopy[i] === secretCopy[i]) {
+                    blackPegs++;
+                    guessCopy[i] = -1;
+                    secretCopy[i] = -1;
+                }
+            }
+
+            // Then, calculate white pegs
+            for (let i = 0; i < CODE_LENGTH; i++) {
+                if (guessCopy[i] !== -1) {
+                    const secretIndex = secretCopy.indexOf(guessCopy[i]);
+                    if (secretIndex !== -1) {
+                        whitePegs++;
+                        secretCopy[secretIndex] = -1;
+                    }
+                }
+            }
+            return { black: blackPegs, white: whitePegs };
+        }
+
+        /**
+         * Displays a message to the user in the game message box.
+         * @param {string} message - The message to display.
+         * @param {string} type - The type of message ('success', 'error', or 'info').
+         */
+        function displayMessage(message, type = 'info') {
+            gameMessage.textContent = message;
+            gameMessage.classList.remove('hidden', 'success', 'error', 'info');
+            gameMessage.classList.add('block', type);
+        }
+
+        /**
+         * Hides the game message box.
+         */
+        function hideMessage() {
+            gameMessage.classList.add('hidden');
+        }
+
+        // --- Drawing Functions ---
+
+        /**
+         * Draws a single colored peg on the canvas.
+         * @param {number} x - X coordinate of the peg center.
+         * @param {number} y - Y coordinate of the peg center.
+         * @param {string} color - The color of the peg.
+         * @param {number} radius - The radius of the peg.
+         */
+        function drawPeg(x, y, color, radius) {
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = '#6b7280';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        /**
+         * Draws the feedback pegs for a guess.
+         * @param {number} x - X coordinate for the top-left of feedback area.
+         * @param {number} y - Y coordinate for the top-left of feedback area.
+         * @param {number} black - Number of black pegs.
+         * @param {number} white - Number of white pegs.
+         */
+        function drawFeedbackPegs(x, y, black, white) {
+            const spacing = FEEDBACK_PEG_RADIUS * 2 + 5;
+            const startX = x + FEEDBACK_PEG_RADIUS;
+            const startY = y + FEEDBACK_PEG_RADIUS;
+
+            let currentX = startX;
+            let currentY = startY;
+
+            for (let i = 0; i < black; i++) {
+                drawPeg(currentX, currentY, '#000000', FEEDBACK_PEG_RADIUS);
+                currentX += spacing;
+                if (i === 1) {
+                    currentX = startX;
+                    currentY += spacing;
+                }
+            }
+            for (let i = 0; i < white; i++) {
+                drawPeg(currentX, currentY, '#ffffff', FEEDBACK_PEG_RADIUS);
+                currentX += spacing;
+                if (black + i === 1) {
+                    currentX = startX;
+                    currentY += spacing;
+                }
+            }
+        }
+
+        /**
+         * Draws the entire game board, including past guesses and the current guess area.
+         */
+        function drawBoard() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < guessHistory.length; i++) {
+                const guess = guessHistory[i].guess;
+                const feedback = guessHistory[i].feedback;
+                const y = PADDING_Y + (NUM_TURNS - 1 - i) * ROW_HEIGHT;
+
+                for (let j = 0; j < CODE_LENGTH; j++) {
+                    const x = PADDING_X + j * (PEG_RADIUS * 2 + 10) + PEG_RADIUS;
+                    drawPeg(x, y + PEG_RADIUS, PEG_COLORS[guess[j]], PEG_RADIUS);
+                }
+
+                const feedbackX = PADDING_X + CODE_LENGTH * (PEG_RADIUS * 2 + 10) + 10;
+                drawFeedbackPegs(feedbackX, y + PEG_RADIUS - FEEDBACK_PEG_RADIUS * 2, feedback.black, feedback.white);
+            }
+
+            const currentGuessY = PADDING_Y + (NUM_TURNS - 1 - guessHistory.length) * ROW_HEIGHT;
+            if (!gameOver && currentTurn < NUM_TURNS) {
+                for (let i = 0; i < CODE_LENGTH; i++) {
+                    const x = PADDING_X + i * (PEG_RADIUS * 2 + 10) + PEG_RADIUS;
+                    ctx.beginPath();
+                    ctx.arc(x, currentGuessY + PEG_RADIUS, PEG_RADIUS, 0, Math.PI * 2);
+                    ctx.fillStyle = '#374151'; /* Dark gray for empty holes */
+                    ctx.fill();
+                    ctx.strokeStyle = '#6b7280';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    ctx.closePath();
+
+                    if (currentGuess[i] !== null) {
+                        drawPeg(x, currentGuessY + PEG_RADIUS, PEG_COLORS[currentGuess[i]], PEG_RADIUS);
+                    }
+                }
+            }
+        }
+
+        // --- Game Logic Functions ---
+
+        /**
+         * Initializes a new game: sets secret code, resets state, and draws board.
+         */
+        function newGame() {
+            secretCode = [];
+            for (let i = 0; i < CODE_LENGTH; i++) {
+                secretCode.push(Math.floor(Math.random() * PEG_COLORS.length));
+            }
+            currentGuess = Array(CODE_LENGTH).fill(null);
+            guessHistory = [];
+            currentTurn = 0;
+            gameOver = false;
+            hideMessage();
+            solverOutput.classList.add('hidden');
+            aiSuggestedCode.textContent = '';
+            aiHintOutput.classList.add('hidden');
+            aiHintText.textContent = '';
+            gameAnalysisOutput.classList.add('hidden');
+            gameAnalysisText.textContent = '';
+            analyzeGameBtn.classList.add('hidden');
+            possibleCodes = generateAllPossibleCodes();
+            setCanvasDimensions();
+            initColorPicker();
+            drawBoard();
+            console.log("Secret Code (for debugging):", secretCode.map(idx => PEG_COLOR_NAMES[idx]));
+        }
+
+        /**
+         * Handles a color selection from the color picker.
+         * @param {number} colorIndex - The index of the selected color.
+         */
+        function selectColor(colorIndex) {
+            if (gameOver) return;
+
+            const emptySlotIndex = currentGuess.indexOf(null);
+            if (emptySlotIndex !== -1) {
+                currentGuess[emptySlotIndex] = colorIndex;
+                drawBoard();
+            }
+        }
+
+        /**
+         * Clears the current guess being assembled.
+         */
+        function clearCurrentGuess() {
+            if (gameOver) return;
+            currentGuess = Array(CODE_LENGTH).fill(null);
+            drawBoard();
+            hideMessage();
+        }
+
+        /**
+         * Processes the player's guess.
+         */
+        function makeGuess() {
+            if (gameOver) return;
+
+            if (currentGuess.includes(null)) {
+                displayMessage('Please select all ' + CODE_LENGTH + ' colors for your guess.', 'error');
+                return;
+            }
+            hideMessage();
+
+            const feedback = calculateFeedback(currentGuess, secretCode);
+            guessHistory.push({ guess: [...currentGuess], feedback: feedback });
+            currentTurn++;
+
+            drawBoard();
+
+            if (feedback.black === CODE_LENGTH) {
+                displayMessage('Congratulations! You cracked the code!', 'success');
+                gameOver = true;
+                analyzeGameBtn.classList.remove('hidden');
+            } else if (currentTurn >= NUM_TURNS) {
+                displayMessage('Game Over! You ran out of turns. The code was: ' + secretCode.map(idx => PEG_COLOR_NAMES[idx]).join(', '), 'error');
+                gameOver = true;
+                analyzeGameBtn.classList.remove('hidden');
+            }
+
+            currentGuess = Array(CODE_LENGTH).fill(null);
+        }
+
+        // --- AI Solver Functions ---
+
+        /**
+         * Filters the possibleCodes array based on the last guess and its feedback.
+         * @param {Array<number>} lastGuess - The guess that was just made.
+         * @param {{black: number, white: number}} actualFeedback - The actual feedback received for that guess.
+         */
+        function filterPossibleCodes(lastGuess, actualFeedback) {
+            possibleCodes = possibleCodes.filter(candidateCode => {
+                const feedbackForCandidate = calculateFeedback(lastGuess, candidateCode);
+                return feedbackForCandidate.black === actualFeedback.black &&
+                       feedbackForCandidate.white === actualFeedback.white;
+            });
+        }
+
+        /**
+         * AI makes the next guess.
+         */
+        function aiMakeNextGuess() {
+            if (gameOver) return;
+
+            if (guessHistory.length === 0) {
+                if (CODE_LENGTH >= 2 && PEG_COLORS.length >= 2) {
+                    currentGuess = [0, 0, 1, 1].slice(0, CODE_LENGTH);
+                } else {
+                    currentGuess = Array(CODE_LENGTH).fill(0);
+                }
+            } else {
+                const lastGuessEntry = guessHistory[guessHistory.length - 1];
+                filterPossibleCodes(lastGuessEntry.guess, lastGuessEntry.feedback);
+
+                if (possibleCodes.length === 0) {
+                    displayMessage('AI Error: No possible codes left! (This should not happen with correct logic)', 'error');
+                    return;
+                }
+                currentGuess = [...possibleCodes[0]];
+            }
+
+            solverOutput.classList.remove('hidden');
+            aiSuggestedCode.textContent = currentGuess.map(idx => PEG_COLOR_NAMES[idx]).join(', ');
+            drawBoard();
+            displayMessage('AI has suggested a guess. Click "Make Guess" to submit it.', 'info');
+        }
+
+        /**
+         * Automatically plays the game using the AI solver.
+         */
+        async function autoSolveGame() {
+            if (gameOver) {
+                newGame();
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            makeGuessBtn.disabled = true;
+            clearGuessBtn.disabled = true;
+            solveNextBtn.disabled = true;
+            autoSolveBtn.disabled = true;
+            newGameBtn.disabled = true;
+            getAIHintBtn.disabled = true;
+            toggleInfoBtn.disabled = true;
+            applyDifficultyBtn.disabled = true;
+            difficultySelect.disabled = true;
+            analyzeGameBtn.disabled = true;
+
+            while (!gameOver && currentTurn < NUM_TURNS) {
+                aiMakeNextGuess();
+                if (currentGuess.includes(null)) {
+                    displayMessage('AI failed to generate a complete guess. Stopping auto-solve.', 'error');
+                    break;
+                }
+                makeGuess();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+            makeGuessBtn.disabled = false;
+            clearGuessBtn.disabled = false;
+            solveNextBtn.disabled = false;
+            autoSolveBtn.disabled = false;
+            newGameBtn.disabled = false;
+            getAIHintBtn.disabled = false;
+            toggleInfoBtn.disabled = false;
+            applyDifficultyBtn.disabled = false;
+            difficultySelect.disabled = false;
+            analyzeGameBtn.disabled = false;
+        }
+
+        // --- Gemini API Integration for AI Coach and Analysis ---
+
+        /**
+         * Fetches a strategic hint from the Gemini LLM based on current game state.
+         */
+        async function getAIHint() {
+            if (gameOver) {
+                displayMessage('The game is over. Start a new game to get hints.', 'info');
+                return;
+            }
+            if (guessHistory.length === 0) {
+                displayMessage('Make your first guess before asking for a hint!', 'info');
+                return;
+            }
+
+            aiHintOutput.classList.remove('hidden');
+            aiHintOutput.classList.add('loading');
+            aiHintText.textContent = 'Thinking...';
+            getAIHintBtn.disabled = true;
+
+            let chatHistory = [];
+            let formattedGuessHistory = guessHistory.map((entry, index) => {
+                const guessColors = entry.guess.map(idx => PEG_COLOR_NAMES[idx]).join(', ');
+                const feedback = `Black pegs: ${entry.feedback.black}, White pegs: ${entry.feedback.white}`;
+                return `Turn ${index + 1}: Guess: [${guessColors}], Feedback: ${feedback}`;
+            }).join('\n');
+
+            const prompt = `You are an AI Mastermind coach. The secret code has ${CODE_LENGTH} colors, chosen from these options: ${PEG_COLOR_NAMES.join(', ')}.
+            
+            Here is the guess history so far:
+            ${formattedGuessHistory}
+            
+            Based on this history, provide a concise, strategic hint for the player's next guess. Do NOT reveal the secret code. Focus on deductions or common strategies. For example, 'Consider which colors have received black pegs in early guesses.' or 'Focus on eliminating colors that have not received any feedback.' Limit your response to one or two sentences.`;
+
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { contents: chatHistory };
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    aiHintText.textContent = text;
+                    aiHintOutput.classList.remove('loading');
+                } else {
+                    aiHintText.textContent = 'Could not get a hint. Please try again.';
+                    aiHintOutput.classList.remove('loading');
+                    aiHintOutput.classList.add('error');
+                    console.error('Gemini API response structure unexpected:', result);
+                }
+            } catch (error) {
+                aiHintText.textContent = 'Failed to fetch hint. Network error or API issue.';
+                aiHintOutput.classList.remove('loading');
+                aiHintOutput.classList.add('error');
+                console.error('Error calling Gemini API:', error);
+            } finally {
+                getAIHintBtn.disabled = false;
+            }
+        }
+
+        /**
+         * Analyzes the completed game using the Gemini LLM.
+         */
+        async function analyzeGame() {
+            if (!gameOver) {
+                displayMessage('The game must be over to analyze it.', 'info');
+                return;
+            }
+
+            gameAnalysisOutput.classList.remove('hidden');
+            gameAnalysisOutput.classList.add('loading');
+            gameAnalysisText.textContent = 'Analyzing your game...';
+            analyzeGameBtn.disabled = true;
+
+            let chatHistory = [];
+            let formattedGuessHistory = guessHistory.map((entry, index) => {
+                const guessColors = entry.guess.map(idx => PEG_COLOR_NAMES[idx]).join(', ');
+                const feedback = `Black pegs: ${entry.feedback.black}, White pegs: ${entry.feedback.white}`;
+                return `Turn ${index + 1}: Guess: [${guessColors}], Feedback: ${feedback}`;
+            }).join('\n');
+
+            const secretCodeFormatted = secretCode.map(idx => PEG_COLOR_NAMES[idx]).join(', ');
+            const winStatus = guessHistory[guessHistory.length - 1].feedback.black === CODE_LENGTH ? 'won' : 'lost';
+            const turnsTaken = guessHistory.length;
+
+            const prompt = `You are an AI Mastermind game analyst. The game just concluded.
+            
+            Game settings: Code length: ${CODE_LENGTH}, Number of colors: ${PEG_COLORS.length}, Max turns: ${NUM_TURNS}.
+            Available colors: ${PEG_COLOR_NAMES.join(', ')}.
+            
+            The secret code was: [${secretCodeFormatted}]
+            The player ${winStatus} in ${turnsTaken} turns.
+            
+            Here is the complete guess history:
+            ${formattedGuessHistory}
+            
+            Please provide a brief analysis of the player's game. Comment on their strategy, any notable deductions (or missed opportunities), and overall performance. Suggest one general piece of advice for future games. Keep the analysis concise, focusing on key points in 3-5 sentences.`;
+
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { contents: chatHistory };
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    gameAnalysisText.textContent = text;
+                    gameAnalysisOutput.classList.remove('loading');
+                } else {
+                    gameAnalysisText.textContent = 'Could not get game analysis. Please try again.';
+                    gameAnalysisOutput.classList.remove('loading');
+                    gameAnalysisOutput.classList.add('error');
+                    console.error('Gemini API response structure unexpected:', result);
+                }
+            } catch (error) {
+                gameAnalysisText.textContent = 'Failed to fetch game analysis. Network error or API issue.';
+                gameAnalysisOutput.classList.remove('loading');
+                gameAnalysisOutput.classList.add('error');
+                console.error('Error calling Gemini API:', error);
+            } finally {
+                analyzeGameBtn.disabled = false;
+            }
+        }
+
+
+        // --- Event Listeners and Initialization ---
+
+        /**
+         * Initializes the color picker buttons based on current PEG_COLORS.
+         */
+        function initColorPicker() {
+            colorPicker.innerHTML = '';
+            PEG_COLORS.forEach((color, index) => {
+                const colorDiv = document.createElement('div');
+                colorDiv.className = 'color-peg';
+                colorDiv.style.backgroundColor = color;
+                colorDiv.dataset.colorIndex = index;
+                colorDiv.addEventListener('click', () => selectColor(index));
+                colorPicker.appendChild(colorDiv);
+            });
+        }
+
+        // Set canvas dimensions based on game parameters
+        function setCanvasDimensions() {
+            canvas.width = PADDING_X * 2 + CODE_LENGTH * (PEG_RADIUS * 2 + 10) + 100;
+            canvas.height = PADDING_Y * 2 + NUM_TURNS * ROW_HEIGHT;
+
+            if (window.innerWidth < 768) {
+                const scale = (window.innerWidth - 60) / canvas.width;
+                canvas.style.width = (canvas.width * scale) + 'px';
+                canvas.style.height = (canvas.height * scale) + 'px';
+            } else {
+                canvas.style.width = canvas.width + 'px';
+                canvas.style.height = canvas.height + 'px';
+            }
+        }
+
+        /**
+         * Applies the selected difficulty settings and starts a new game.
+         */
+        function applyDifficulty() {
+            const selectedDifficulty = difficultySelect.value;
+            switch (selectedDifficulty) {
+                case 'easy':
+                    CODE_LENGTH = 3;
+                    NUM_TURNS = 8;
+                    PEG_COLORS = ALL_PEG_COLORS.slice(0, 3);
+                    PEG_COLOR_NAMES = ALL_PEG_COLOR_NAMES.slice(0, 3);
+                    break;
+                case 'medium':
+                    CODE_LENGTH = 4;
+                    NUM_TURNS = 10;
+                    PEG_COLORS = ALL_PEG_COLORS.slice(0, 6);
+                    PEG_COLOR_NAMES = ALL_PEG_COLOR_NAMES.slice(0, 6);
+                    break;
+                case 'hard':
+                    CODE_LENGTH = 5;
+                    NUM_TURNS = 12;
+                    PEG_COLORS = ALL_PEG_COLORS.slice(0, 8);
+                    PEG_COLOR_NAMES = ALL_PEG_COLOR_NAMES.slice(0, 8);
+                    break;
+            }
+            newGame();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            applyDifficulty();
+
+            window.addEventListener('resize', setCanvasDimensions);
+
+            makeGuessBtn.addEventListener('click', makeGuess);
+            clearGuessBtn.addEventListener('click', clearCurrentGuess);
+            solveNextBtn.addEventListener('click', aiMakeNextGuess);
+            autoSolveBtn.addEventListener('click', autoSolveGame);
+            newGameBtn.addEventListener('click', newGame);
+            getAIHintBtn.addEventListener('click', getAIHint);
+            analyzeGameBtn.addEventListener('click', analyzeGame);
+
+            toggleInfoBtn.addEventListener('click', () => {
+                gameInfoSection.classList.toggle('hidden');
+            });
+
+            applyDifficultyBtn.addEventListener('click', applyDifficulty);
+        });
+    </script>
+</body>
+</html>
